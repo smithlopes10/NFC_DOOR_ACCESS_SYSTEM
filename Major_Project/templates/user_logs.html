@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Access Logs</title>
+    <!-- <meta http-equiv="refresh" content = "10"> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a> <!-- Logout link added -->
+        </div>
+    </nav>
+    <h1>Access Logs</h1>
+    <table id="logs-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log[0] }}</td>
+                <td>{{ log[1] }}</td>
+                <td>{{ log[2] }}</td>
+                <td>{{ log[3] }}</td>
+                <td>{{ log[4] }}</td>
+                <td>{{ log[5] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+   
+    
+    <script>
+        const socket = io();
+    
+        socket.on('log_update', (data) => {
+            console.log('Received log update:', data);
+            fetchLogs();  // Fetch new logs when notified
+        });
+    
+        function fetchLogs() {
+            fetch('/fetch_logs')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Fetched logs:', data.logs);
+                    updateLogTable(data.logs);
+                })
+                .catch(error => console.error('Error fetching logs:', error));
+        }
+    
+        function updateLogTable(logs) {
+            const table = document.getElementById('logs-table').getElementsByTagName('tbody')[0];
+            table.innerHTML = '';  // Clear existing logs
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${log.id}</td>
+                    <td>${log.code}</td>
+                    <td>${log.name}</td>
+                    <td>${log.role}</td>
+                    <td>${log.status}</td>
+                    <td>${log.timestamp}</td>`;
+                table.appendChild(row);
+            });
+        }
+    
+        // Automatically fetch logs on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchLogs(); // Initial fetch
+            setInterval(fetchLogs, 5000); // Fetch logs every 5 seconds
+        });
+    </script>
+    
+</body>
+</html>

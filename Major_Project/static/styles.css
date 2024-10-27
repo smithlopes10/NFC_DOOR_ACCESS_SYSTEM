@@ -1,0 +1,136 @@
+/* Navbar styles */
+.navbar {
+    background-color: #34495e; /* Dark background for the navbar */
+    padding: 10px 20px; /* Padding for the navbar */
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: flex-start; /* Align links to the left */
+}
+
+.navbar-link {
+    color: white; /* White text color */
+    margin-right: 20px; /* Space between links */
+    text-decoration: none; /* Remove underline */
+    font-size: 1.2em; /* Font size for links */
+    transition: color 0.3s; /* Smooth transition for hover effect */
+}
+
+.navbar-link:hover {
+    color: #ecf0f1; /* Lighter color on hover */
+}
+
+/* Content styles */
+.content {
+    text-align: center; /* Center the content */
+    margin-top: 50px; /* Space above the content */
+}
+/* Content styles */
+.content {
+    text-align: center; /* Center the content */
+    margin-top: 50px; /* Space above the content */
+}
+
+/* Add these classes to your styles.css file */
+
+.access-logs-system {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.access-logs-heading {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+.access-logs-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 5px;
+    font-size: 1.2em;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.access-logs-button-primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.access-logs-button-secondary {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.access-logs-button:hover {
+    transform: translateY(-2px);
+}
+
+.access-logs-button-primary:hover {
+    background-color: #2980b9;
+}
+
+.access-logs-button-secondary:hover {
+    background-color: #27ae60;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+.table-container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+@media (max-width: 600px) {
+    th, td {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+}

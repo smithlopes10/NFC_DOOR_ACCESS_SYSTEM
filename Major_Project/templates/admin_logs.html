@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/styles.css">
+    <title>Admin Access Logs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        .edit-form {
+            display: none;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .button {
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: black;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .cancel-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        .add-log-form {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .add-log-form input, .add-log-form select {
+            margin: 5px 0;
+            padding: 8px;
+            width: 200px;
+        }
+        .add-btn {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{{ url_for('logout') }}" class="navbar-link">Logout</a>
+        </div>
+    </nav>
+
+    <h1>Access Logs</h1>
+
+    <!-- Add Log Form -->
+    <div class="add-log-form">
+        <h3>Add New Log</h3>
+        <form onsubmit="addLog(event)">
+            <input type="text" id="add-code" placeholder="Code" required><br>
+            <input type="text" id="add-name" placeholder="Name" required><br>
+            <input type="text" id="add-role" placeholder="Role" required><br>
+            <select id="add-status" required>
+                <option value="">Select Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+            </select><br>
+            <button type="submit" class="button add-btn">Add Log</button>
+        </form>
+    </div>
+
+    <table id="logs-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Timestamp</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr id="log-row-{{ log[0] }}">
+                <td>{{ log[0] }}</td>
+                <td>
+                    <span class="log-text">{{ log[1] }}</span>
+                    <form class="edit-form" data-log-id="{{ log[0] }}" onsubmit="saveEdit(event, this)">
+
+                        <input type="text" value="{{ log[1] }}" name="code">
+                        <input type="text" value="{{ log[2] }}" name="name">
+                        <input type="text" value="{{ log[3] }}" name="role">
+                        <select name="status">
+                            <option value="Active" {% if log[4] == 'Active' %}selected{% endif %}>Active</option>
+                            <option value="Inactive" {% if log[4] == 'Inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                        <button type="submit" class="button save-btn">Save</button>
+                        <button type="button" class="button cancel-btn" data-log-id="{{ log[0] }}" onclick="toggleEdit(this)">Cancel</button>
+
+                    </form>
+                </td>
+                <td>{{ log[2] }}</td>
+                <td>{{ log[3] }}</td>
+                <td>{{ log[4] }}</td>
+                <td>{{ log[5] }}</td>
+                <td class="action-buttons">
+                    <button class="button edit-btn" data-log-id="{{ log[0] }}" onclick="toggleEdit(this)">Edit</button>
+                    <button class="button delete-btn" data-log-id="{{ log[0] }}" onclick="deleteLog(this)">Delete</button>
+                </td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        const socket = io();
+
+        socket.on('log_update', (data) => {
+            console.log('Received log update:', data);
+            fetchLogs();
+        });
+
+        function fetchLogs() {
+            fetch('/fetch_logs')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Fetched logs:', data);
+                    updateLogTable(data.logs);
+                })
+                .catch(error => console.error('Error fetching logs:', error));
+        }
+
+        function updateLogTable(logs) {
+            const table = document.getElementById('logs-table').getElementsByTagName('tbody')[0];
+            table.innerHTML = '';
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.id = `log-row-${log[0]}`;
+                row.innerHTML = `
+                    <td>${log[0]}</td>
+                    <td>
+                        <span class="log-text">${log[1]}</span>
+                        <form class="edit-form" onsubmit="saveEdit(event, ${log[0]})">
+                            <input type="text" value="${log[1]}" name="code">
+                            <input type="text" value="${log[2]}" name="name">
+                            <input type="text" value="${log[3]}" name="role">
+                            <select name="status">
+                                <option value="Active" ${log[4] === 'Active' ? 'selected' : ''}>Active</option>
+                                <option value="Inactive" ${log[4] === 'Inactive' ? 'selected' : ''}>Inactive</option>
+                            </select>
+                            <button type="submit" class="button save-btn">Save</button>
+                            <button type="button" class="button cancel-btn" onclick="toggleEdit(${log[0]})">Cancel</button>
+                        </form>
+                    </td>
+                    <td>${log[2]}</td>
+                    <td>${log[3]}</td>
+                    <td>${log[4]}</td>
+                    <td>${log[5]}</td>
+                    <td class="action-buttons">
+                        <button class="button edit-btn" onclick="toggleEdit(${log[0]})">Edit</button>
+                        <button class="button delete-btn" onclick="deleteLog(${log[0]})">Delete</button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+        }
+
+        function toggleEdit(button) {
+            const logId = button.getAttribute('data-log-id');
+            const row = document.getElementById(`log-row-${logId}`);
+            const logText = row.querySelectorAll('.log-text');
+            const editForm = row.querySelector('.edit-form');
+            
+            if (editForm.style.display === 'none') {
+                logText.forEach(text => text.style.display = 'none');
+                editForm.style.display = 'block';
+            } else {
+                logText.forEach(text => text.style.display = 'block');
+                editForm.style.display = 'none';
+            }
+        }
+
+        function saveEdit(event, logId) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = {
+                code: form.code.value,
+                name: form.name.value,
+                role: form.role.value,
+                status: form.status.value
+            };
+
+            fetch(`/edit_log/${logId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    fetchLogs();
+                } else {
+                    alert('Error updating log');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function deleteLog(logId) {
+            if (confirm('Are you sure you want to delete this log?')) {
+                fetch(`/delete_log/${logId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchLogs();
+                    } else {
+                        alert('Error deleting log');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        }
+
+        function addLog(event) {
+            event.preventDefault();
+            const formData = {
+                code: document.getElementById('add-code').value,
+                name: document.getElementById('add-name').value,
+                role: document.getElementById('add-role').value,
+                status: document.getElementById('add-status').value
+            };
+
+            fetch('/add_log', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    event.target.reset();
+                    fetchLogs();
+                } else {
+                    alert('Error adding log');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        let fetchInterval;
+
+        document.addEventListener('DOMContentLoaded', () => {
+    fetchLogs(); // Initial fetch on load
+    fetchInterval = setInterval(fetchLogs, 5000); // Fetch logs every 5 seconds
+});
+ // Fetch logs every 5 seconds
+
+// Add this function to handle cleanup
+function stopFetching() {
+    if (fetchInterval) {
+        clearInterval(fetchInterval);
+    }
+}
+    </script>
+</body>
+</html>
